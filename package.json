@@ -13,7 +13,8 @@
     "expo-splash-screen": "~0.18.2",
     "expo-status-bar": "~1.4.4",
     "react": "18.2.0",
-    "react-native": "0.71.7"
+    "react-native": "0.71.7",
+    "react-native-start-service": "git+https://github.com/Secullum/react-native-start-service.git#cb6fe2e7d9454ee435d33ab011bc5e1844aa86bf"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"

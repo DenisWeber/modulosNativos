@@ -5427,6 +5427,10 @@ react-native-gradle-plugin@^0.71.17:
   resolved "https://registry.yarnpkg.com/react-native-gradle-plugin/-/react-native-gradle-plugin-0.71.17.tgz#cf780a27270f0a32dca8184eff91555d7627dd00"
   integrity sha512-OXXYgpISEqERwjSlaCiaQY6cTY5CH6j73gdkWpK0hedxtiWMWgH+i5TOi4hIGYitm9kQBeyDu+wim9fA8ROFJA==
 
+"react-native-start-service@git+https://github.com/Secullum/react-native-start-service.git#cb6fe2e7d9454ee435d33ab011bc5e1844aa86bf":
+  version "1.0.0"
+  resolved "git+https://github.com/Secullum/react-native-start-service.git#cb6fe2e7d9454ee435d33ab011bc5e1844aa86bf"
+
 react-native@0.71.7:
   version "0.71.7"
   resolved "https://registry.yarnpkg.com/react-native/-/react-native-0.71.7.tgz#d0ae409f6ee4fc7e7a876b4ca9d8d28934133228"

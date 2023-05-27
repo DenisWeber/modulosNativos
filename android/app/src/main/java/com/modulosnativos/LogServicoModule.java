@@ -1,5 +1,8 @@
 package com.modulosnativos;
 
+import android.content.Intent;
+import android.net.Uri;
+
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -7,7 +10,6 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.modulosnativos.data.AppDatabase;
-import com.modulosnativos.data.FaceDao;
 import com.modulosnativos.data.Log;
 import com.modulosnativos.data.LogDao;
 
@@ -35,21 +37,37 @@ public class LogServicoModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void iniciarServico() {
-        m_logDao.insert(Log.ACTION_START_SERVICE_INIT);
-        sendLog(m_dateFormat.format(new Date()) + " - " + "Iniciando serviço...");
+    public void chamarWhatsapp(String phoneNumber, String message) {
+        m_logDao.insert(Log.CHAMOU_WHATSAPP);
+        sendLog(m_dateFormat.format(new Date()) + " - " + "Chamou Whatsapp...");
 
-        m_logDao.insert(Log.ACTION_START_SERVICE_SUCCESS);
-        sendLog(m_dateFormat.format(new Date()) + " - " + "Serviço iniciado com sucesso.");
+        try {
+            String url = "https://api.whatsapp.com/send?phone=" + phoneNumber + "&text=" + Uri.encode(message);
+
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse(url));
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+            m_reactContext.startActivity(intent);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @ReactMethod
-    public void pararServico() {
-        m_logDao.insert(Log.ACTION_STOP_SERVICE_INIT);
-        sendLog(m_dateFormat.format(new Date()) + " - " + "Parando serviço...");
+    public void chamarLigacao(String phoneNumber) {
+        m_logDao.insert(Log.CHAMOU_LIGACAO);
+        sendLog(m_dateFormat.format(new Date()) + " - " + "Chamou Ligação...");
 
-        m_logDao.insert(Log.ACTION_STOP_SERVICE_SUCCESS);
-        sendLog(m_dateFormat.format(new Date()) + " - " + "Serviço parado com sucesso.");
+        try {
+            Intent intent = new Intent(Intent.ACTION_DIAL);
+            intent.setData(Uri.parse("tel:" + phoneNumber));
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+            m_reactContext.startActivity(intent);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @ReactMethod

@@ -8,11 +8,20 @@ import {
   Text,
   ScrollView,
   NativeEventEmitter,
-  NativeModules
+  NativeModules,
+  TextInput
 } from 'react-native';
+import ReactNativeStartService from 'react-native-start-service';
 
 const App = () => {
   const [logs, setLogs] = useState([]);
+  const [numero, setNumero] = useState('');
+  const [mensagem, setMensagem] = useState('');
+
+  const NOME_PACOTE = 'com.modulosnativos';
+  const SERVICO_CLASSE = 'com.modulosnativos.LogServicoService';
+  const ACAO_WHATSAPP = "com.modulosnativos.ACAO_WHATSAPP";
+  const ACAO_TELEFONE = "com.modulosnativos.ACAO_TELEFONE";
 
   useEffect(() => {
     const logModule = NativeModules.LogServico;
@@ -33,12 +42,26 @@ const App = () => {
   };
   
 
-  const clickHandlerIniciar = () => {
-    NativeModules.LogServico.iniciarServico();
+  const clickHandlerWhatsapp = () => {
+    NativeModules.LogServico.chamarWhatsapp(numero, mensagem);
   };
 
-  const clickHandlerParar = () => {
-    NativeModules.LogServico.pararServico();
+  const clickHandlerWhatsappStartService = async () => {
+    const resultado = await ReactNativeStartService.startAsync(NOME_PACOTE, SERVICO_CLASSE, ACAO_WHATSAPP, {numero, mensagem});
+
+    setLogs([...logs, resultado.message]);
+  };
+
+  const clickHandlerLigar = () => {
+    NativeModules.LogServico.chamarLigacao(numero);
+  };
+
+  const clickHandlerLigarStartService = async () => {
+    const resultado = await ReactNativeStartService.startAsync(NOME_PACOTE, SERVICO_CLASSE, ACAO_TELEFONE, {numero});
+
+    console.log(resultado.message);
+    
+    setLogs([...logs, resultado.message]);
   };
 
   const clickHandlerDeletarLogs = () => {
@@ -48,31 +71,56 @@ const App = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.container}>
-        <Text style={styles.textStyle}>
-          Clique no Botão para Ver o Alerta
-        </Text>
+        <TextInput 
+          style={styles.textStyle}
+          onChangeText={(valor) => setNumero(valor)}
+          value={numero}
+          placeholder='Digite o número'/>
+        <TextInput 
+          style={styles.textStyle}
+          onChangeText={(valor) => setMensagem(valor)}
+          value={mensagem}
+          placeholder='Digite a mensagem'/>
         <View style={styles.viewBotoes}>
           <TouchableOpacity
             activeOpacity={0.7}
-            onPress={clickHandlerIniciar}
-            style={styles.botaoIniciar}>
-              <Text style={styles.textoBotoes}>Iniciar</Text>
+            onPress={clickHandlerWhatsapp}
+            style={styles.botaoWhatsapp}>
+              <Text style={styles.textoBotoes}>Whatsapp</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             activeOpacity={0.7}
-            onPress={clickHandlerParar}
-            style={styles.botaoParar}>
-              <Text style={styles.textoBotoes}>Parar</Text>
+            onPress={clickHandlerLigar}
+            style={styles.botaoLigar}>
+              <Text style={styles.textoBotoes}>Ligar</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.viewBotoes}>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={clickHandlerWhatsappStartService}
+            style={styles.botaoWhatsapp}>
+              <Text style={styles.textoBotoes}>Whatsapp Service</Text>
           </TouchableOpacity>
 
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={clickHandlerLigarStartService}
+            style={styles.botaoLigar}>
+              <Text style={styles.textoBotoes}>Ligar Service</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* <View style={styles.viewBotoes}>
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={clickHandlerDeletarLogs}
             style={styles.botaoDeletar}>
               <Text style={styles.textoBotoes}>Deletar</Text>
           </TouchableOpacity>
-        </View>
+        </View> */}
         <ScrollView style={styles.scrollView}>
           {logs.map((log, index) => (
           <Text style={styles.textLogs} key={index}>{log}</Text>
@@ -103,8 +151,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     padding: 10,
+    borderWidth: 1,
+    width: 300,
+    marginBottom: 10
   },
-  botaoIniciar: {
+  botaoWhatsapp: {
     width: 110,
     height: 50,
     alignItems: 'center',
@@ -120,12 +171,20 @@ const styles = StyleSheet.create({
     backgroundColor: 'red',
     borderRadius: 2
   },
-  botaoDeletar: {
+  botaoLigar: {
     width: 110,
     height: 50,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'blue',
+    borderRadius: 2
+  },
+  botaoDeletar: {
+    width: 110,
+    height: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'red',
     borderRadius: 2
   },
   botaoLogs: {
