@@ -71,7 +71,7 @@ public class LogServicoService extends Service {
     }
 
     private void handleActionWhatsapp(Intent intent) {
-        showNotification();
+//        showNotification();
 
         Bundle params = intent.getBundleExtra("params");
         Bundle result = new Bundle();
@@ -112,13 +112,11 @@ public class LogServicoService extends Service {
 
         m_logDao.insert(Log.CHAMOU_LIGACAO_SERVICO);
 
-        showNotification();
-
         URL url = new URL("https://download.secullum.com.br/BiowebNativeFiles/BiowebNativeFiles.zip");
         File zipNdfFiles = new File(getCacheDir(), "BiowebNativeFiles.zip");
 
         try {
-           download(url, zipNdfFiles, 0);
+           download(url, zipNdfFiles, 0, false);
 
             result.putBoolean("error", false);
             result.putString("message", "download feito com sucesso");
@@ -135,7 +133,7 @@ public class LogServicoService extends Service {
         receiver.send(0, result);
     }
 
-    private void showNotification() {
+    private void showNotification(long fileSize) {
         Notification.Builder builder;
 
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O) {
@@ -150,13 +148,13 @@ public class LogServicoService extends Service {
         builder
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .setContentTitle("Modulos Nativos")
-                .setContentText("Download de arquivos...")
+                .setContentText("0 MB / " + fileSize + " MB")
                 .setProgress(100, 0, false);
 
         startForeground(1, builder.build());
     }
 
-    private void updateDownloadProgress(int progress) {
+    private void updateDownloadProgress(int progress, long fileSize, long progressoDownload) {
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         Notification.Builder builder;
 
@@ -170,7 +168,7 @@ public class LogServicoService extends Service {
         builder
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .setContentTitle("Modulos Nativos")
-                .setContentText("Download de arquivos...")
+                .setContentText(progressoDownload + " MB / " + fileSize + " MB")
                 .setProgress(100, progress, false);
 
         notificationManager.notify(1, builder.build());
@@ -186,8 +184,15 @@ public class LogServicoService extends Service {
     int maxTentativas = 5;
     int TAMANHO_BUFFER = 8192;
 
-    private void download(URL url, File zipNdfFile, long pontoInicial) throws Exception {
+    private void download(URL url, File zipNdfFile, long pontoInicial, boolean retry) throws Exception {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+        int fileSize = connection.getContentLength();
+        long fileSizeMb = fileSize / (1024 * 1024);
+
+        if (!retry) {
+            showNotification(fileSizeMb);
+        }
         
         try (BufferedInputStream inputStream = new BufferedInputStream(connection.getInputStream());
              FileOutputStream fileOutputStream = new FileOutputStream(zipNdfFile, true)) {
@@ -197,7 +202,6 @@ public class LogServicoService extends Service {
             byte[] buffer = new byte[TAMANHO_BUFFER];
             int bytesRead;
             long totalBytesRead = pontoInicial;
-            int fileSize = connection.getContentLength();
 
             while ((bytesRead = inputStream.read(buffer, 0, buffer.length)) != -1) {
                 fileOutputStream.write(buffer, 0, bytesRead);
@@ -208,9 +212,10 @@ public class LogServicoService extends Service {
                 int progress = (int) ((totalBytesRead * 100) / fileSize);
 
                 android.util.Log.d("progress", String.valueOf(progress));
+                long progressoDownload = totalBytesRead / (1024 * 1024);
 
                 // Update the download progress notification
-                updateDownloadProgress(progress);
+                updateDownloadProgress(progress, fileSizeMb, progressoDownload);
             }
         }
         catch (Exception e) {
@@ -222,8 +227,9 @@ public class LogServicoService extends Service {
                 throw new IOException("Falha ao baixar arquivos de modelos.");
             }
 
+            android.util.Log.d("erro", e.getMessage());
             Thread.sleep(3000);
-            download(url, zipNdfFile, pontoInicial);
+            download(url, zipNdfFile, pontoInicial, true);
         }
     }
 }
