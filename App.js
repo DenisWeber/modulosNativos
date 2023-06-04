@@ -12,11 +12,14 @@ import {
   TextInput
 } from 'react-native';
 import ReactNativeStartService from 'react-native-start-service';
+import { PermissionModal } from './PermissionModal';
 
 const App = () => {
   const [logs, setLogs] = useState([]);
   const [numero, setNumero] = useState('');
   const [mensagem, setMensagem] = useState('');
+  const [temPermissao, setTemPermissao] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
 
   const NOME_PACOTE = 'com.modulosnativos';
   const SERVICO_CLASSE = 'com.modulosnativos.LogServicoService';
@@ -52,8 +55,23 @@ const App = () => {
     setLogs([...logs, resultado.message]);
   };
 
-  const clickHandlerLigar = () => {
-    NativeModules.LogServico.chamarLigacao(numero);
+  const clickHandlerLigar = async () => {
+    const temPermissoes = await NativeModules.StoragePermissions.checkStoragePermissionAsync();
+
+    if (!temPermissoes) {
+      // requestPermission();
+      NativeModules.StoragePermissions.requestStoragePermission();
+    }
+
+    console.log(temPermissoes);
+  };
+
+  const requestPermission = () => {
+    setModalVisible(true);
+  };
+      
+  const closeModal = () => {
+    setModalVisible(false);
   };
 
   const clickHandlerLigarStartService = async () => {
@@ -126,6 +144,7 @@ const App = () => {
           <Text style={styles.textLogs} key={index}>{log}</Text>
         ))}
         </ScrollView>
+        <PermissionModal visible={modalVisible} onRequestClose={closeModal} />
       </View>
     </SafeAreaView>
   );
